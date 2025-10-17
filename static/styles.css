@@ -81,3 +81,85 @@ body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#1f2937 0%,#0b
   outline: 2px dashed var(--brand);
   outline-offset: -6px;
 }
+/* === 0) Make the main content fill the viewport height === */
+/* Body becomes a vertical flex layout: topbar (auto) + container (fills) + footer (auto) */
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; }
+
+/* container now expands to consume remaining height */
+.container {
+  flex: 1 1 auto;
+  max-width: none;          /* full-width (E-W) */
+  width: 100%;
+  padding-left: 24px;       /* adjust padding to taste */
+  padding-right: 24px;
+}
+
+/* Optional: if you want even more width, hide the rail entirely on desktop too */
+/* .rail { display: none; } */
+/* .container { grid-template-columns: 1fr; } */
+
+
+/* === 1) Two-column layout with explicit areas: left = extracted, right = preview === */
+.panes {
+  display: grid;
+  gap: 20px;
+  height: 100%;             /* fill available vertical space */
+}
+
+/* Desktop: side-by-side, preview on the RIGHT (and a bit wider) */
+@media (min-width: 900px) {
+  .panes {
+    grid-template-columns: 1fr 1.25fr;      /* preview wider; tweak ratio as you like */
+    grid-template-areas: "extracted preview";
+    grid-auto-rows: 1fr;                    /* rows stretch equally if more rows appear */
+  }
+  #extracted-pane { grid-area: extracted; }
+  #preview-pane   { grid-area: preview;   }
+}
+
+/* Mobile: stack (order doesn’t matter when stacked) */
+@media (max-width: 899.98px) {
+  .panes { grid-template-columns: 1fr; }
+}
+
+
+/* === 2) Make each pane stretch vertically and keep headers fixed === */
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;            /* critical so children can shrink and allow scrolling inside */
+}
+
+.pane-header {
+  flex: 0 0 auto;           /* fixed header */
+}
+
+.pane-body {
+  flex: 1 1 auto;           /* body stretches to fill the rest */
+  min-height: 0;            /* allows inner scroll containers to work */
+}
+
+/* === 3) Preview viewport should fill the pane body and scroll internally === */
+.preview { padding: 0; }
+.preview-viewport {
+  position: relative;
+  overflow: auto;           /* internal scrollbars */
+  height: 100%;             /* fill pane-body */
+  max-height: none;         /* remove previous cap */
+  padding: 16px;
+  min-height: 0;
+}
+
+/* Media inside preview: render at natural size; zoom with transform */
+.preview-viewport img,
+.preview-viewport canvas {
+  display: none;            /* JS toggles to block */
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  transform-origin: top left;
+}
+
+/* (Keep your existing .empty and .dragging styles) */
