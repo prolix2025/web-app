@@ -32,3 +32,53 @@ body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#1f2937 0%,#0b
 .visually-hidden{position:absolute !important;left:-9999px;width:1px;height:1px;overflow:hidden}
 @media (min-width:900px){.panes{grid-template-rows:minmax(240px,1fr) minmax(320px,1fr)}}
 @media (max-width:720px){.container{grid-template-columns:1fr}.rail{display:none}}
+
+/* --- Hide the rail pill (removes the "Upload" text) --- */
+.rail-pill { display: none; }
+
+/* --- Make panes side-by-side on desktop, stacked on mobile --- */
+.panes { display: grid; gap: 20px; }
+@media (min-width: 900px) {
+  .panes {
+    grid-template-columns: 1fr 1fr;       /* two columns */
+    grid-auto-rows: minmax(320px, 1fr);
+  }
+}
+
+/* --- Scrollable preview viewport so content stays inside --- */
+.preview { padding: 0; }                   /* let inner viewport hug edges */
+.preview-viewport {
+  position: relative;
+  overflow: auto;                          /* scrollbars live here */
+  height: 60vh;                            /* adjust to taste */
+  max-height: 70vh;
+  padding: 16px;
+}
+
+/* IMPORTANT: remove old constraints that hid content */
+.preview img, .preview canvas {}
+
+/* Natural-size media; zoom via CSS transform */
+.preview-viewport img,
+.preview-viewport canvas {
+  display: none;                           /* JS will switch to block when loaded */
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  transform-origin: top left;              /* zoom from top-left for predictable scroll */
+}
+
+/* Empty state */
+.preview .empty {
+  display: block;
+  color: var(--muted);
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* Optional: visual cue when dragging */
+.preview-viewport.dragging {
+  outline: 2px dashed var(--brand);
+  outline-offset: -6px;
+}
