@@ -88,8 +88,15 @@ document.getElementById("copy-info").addEventListener("click", async () => {
 
 clearBtn.addEventListener("click", () => {
   info.textContent = "— No document yet. Upload a file to see extracted fields here. —";
-  previewImg.src = ""; previewImg.style.display = "none"; previewCanvas.style.display = "none";
+  previewImg.src = "";
+  previewImg.style.display = "none";
+  previewCanvas.style.display = "none";
+  previewEmpty.style.display = "block";      // <-- show empty state again
+  setZoom(1);                                 // <-- reset zoom
+  previewViewport.scrollTop = 0;              // <-- reset scroll
+  previewViewport.scrollLeft = 0;
 });
+
 
 zoomInBtn.addEventListener("click", () => setZoom(zoom + 0.1));
 zoomOutBtn.addEventListener("click", () => setZoom(Math.max(0.2, zoom - 0.1)));
