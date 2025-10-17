@@ -28,7 +28,7 @@
 
     <!-- Center + Right: side-by-side panes -->
     <section class="panes">
-      <!-- Preview Pane -->
+      <!-- Preview Pane (LEFT, wider) -->
       <article class="pane" id="pane-preview">
         <div class="pane-header">
           <h2>Preview</h2>
@@ -38,18 +38,20 @@
           </div>
         </div>
 
-        <div id="preview" class="pane-body preview">
-          <div class="preview-viewport" id="preview-viewport">
-            <div class="empty" id="preview-empty">
-              <p>Drop a file here or use the <strong>Upload</strong> button.</p>
+        <div class="pane-body">
+          <div id="preview" class="preview">
+            <div class="preview-viewport" id="preview-viewport">
+              <div class="empty" id="preview-empty">
+                <p>Drop a file here or use the <strong>Upload</strong> button.</p>
+              </div>
+              <img id="preview-img" alt="" />
+              <canvas id="preview-canvas"></canvas>
             </div>
-            <img id="preview-img" alt="" />
-            <canvas id="preview-canvas"></canvas>
           </div>
         </div>
       </article>
 
-      <!-- Extracted Info Pane -->
+      <!-- Extracted Info Pane (RIGHT) -->
       <article class="pane" id="pane-info">
         <div class="pane-header">
           <h2>Extracted Info</h2>
@@ -58,7 +60,9 @@
             <button class="btn" id="clear-info">Clear</button>
           </div>
         </div>
-        <pre id="extracted-info" class="pane-body code">— No document yet. Upload a file to see extracted fields here. —</pre>
+        <div class="pane-body">
+          <pre id="extracted-info" class="code">— No document yet. Upload a file to see extracted fields here. —</pre>
+        </div>
       </article>
     </section>
   </main>
@@ -67,6 +71,16 @@
     <small>© <span id="year"></span> Your Company • Azure Web App</small>
   </footer>
 
+  <!-- PDF.js (put files in static/vendor/pdfjs/) -->
+  <script src="{{ url_for('static', filename='vendor/pdfjs/pdf.min.js') }}"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ url_for('static', filename='vendor/pdfjs/pdf.worker.min.js') }}";
+  </script>
+
   <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script>
+    // set year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
