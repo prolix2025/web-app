@@ -1,229 +1,236 @@
+/* =========================================================
+   Design tokens
+========================================================= */
 :root{
-  --bg:#0b0f17; --panel:#111827; --panel-2:#0f172a;
-  --text:#e5e7eb; --muted:#9ca3af; --brand:#3b82f6; --brand-2:#2563eb;
-  --ring:rgba(59,130,246,.35); --border:#1f2937; --radius:16px;
+  --bg:#0b0f17;
+  --panel:#111827;
+  --panel-2:#0f172a;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --brand:#3b82f6;
+  --brand-2:#2563eb;
+  --ring:rgba(59,130,246,.35);
+  --border:#1f2937;
+  --radius:16px;
 }
-*{box-sizing:border-box} html,body{height:100%}
-body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#1f2937 0%,#0b0f17 40%,#0b0f17 100%);color:var(--text);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
-.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:rgba(10,14,22,.7);backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--border)}
-.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
-.logo{width:32px;height:32px;object-fit:cover;border-radius:8px}
-.brand-name{font-weight:700;letter-spacing:.2px}
-.nav{display:flex;align-items:center;gap:10px}
-.nav-link{color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:10px}
-.nav-link.active{color:var(--text);background:#0f172a;border:1px solid var(--border)}
-.btn{border:1px solid var(--border);background:#0f172a;color:var(--text);padding:8px 12px;border-radius:12px;cursor:pointer}
-.btn.primary{background:linear-gradient(180deg,var(--brand),var(--brand-2));border:none;color:white;font-weight:600;box-shadow:0 6px 16px rgba(37,99,235,.25)}
-.btn:focus{outline:2px solid var(--ring);outline-offset:2px}
-.container{display:grid;grid-template-columns:84px 1fr;gap:20px;padding:20px;max-width:1200px;margin:0 auto}
-.rail{display:flex;align-items:flex-start;justify-content:center}
-.rail-pill{writing-mode:vertical-rl;transform:rotate(180deg);background:#0f172a;border:1px dashed var(--border);color:var(--muted);border-radius:14px;padding:16px 10px;letter-spacing:.08em}
-.panes{display:grid;gap:20px}
-.pane{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 10px 35px rgba(0,0,0,.35)}
-.pane-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
-.pane-header h2{margin:0;font-size:16px;letter-spacing:.2px}
-.pane-actions{display:flex;gap:8px}
-.pane-body{padding:16px;min-height:220px}
-.code{background:#0b1220;color:#d1e3ff;border-radius:12px;border:1px solid #122037;padding:16px;overflow:auto;white-space:pre-wrap}
-.preview{position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(600px 200px at 50% 0%,rgba(59,130,246,.12),transparent 60%),#0b1220;border:1px solid #122037;border-radius:12px;min-height:340px}
-.preview .empty{color:var(--muted);text-align:center}
-.footer{border-top:1px solid var(--border);color:var(--muted);padding:18px 20px;text-align:center;margin-top:30px}
-.visually-hidden{position:absolute !important;left:-9999px;width:1px;height:1px;overflow:hidden}
-@media (min-width:900px){.panes{grid-template-rows:minmax(240px,1fr) minmax(320px,1fr)}}
-@media (max-width:720px){.container{grid-template-columns:1fr}.rail{display:none}}
 
-/* --- Hide the rail pill (removes the "Upload" text) --- */
-.rail-pill { display: none; }
+/* =========================================================
+   Base / Reset
+========================================================= */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 20% -10%, #1f2937 0%, var(--bg) 40%, var(--bg) 100%);
+  font: 16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+}
 
-/* --- Make panes side-by-side on desktop, stacked on mobile --- */
-.panes { display: grid; gap: 20px; }
-@media (min-width: 900px) {
-  .panes {
-    grid-template-columns: 1fr 1fr;       /* two columns */
+/* =========================================================
+   Topbar
+========================================================= */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(10,14,22,.7);
+  backdrop-filter: saturate(140%) blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+.logo{ width: 32px; height: 32px; object-fit: cover; border-radius: 8px; }
+.brand-name{ font-weight: 700; letter-spacing: .2px; }
+
+.nav{ display:flex; align-items:center; gap:10px; }
+.nav-link{
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.nav-link.active{
+  color: var(--text);
+  background: #0f172a;
+  border: 1px solid var(--border);
+}
+
+/* Buttons */
+.btn{
+  border: 1px solid var(--border);
+  background: #0f172a;
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.btn.primary{
+  background: linear-gradient(180deg, var(--brand), var(--brand-2));
+  border: none;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(37,99,235,.25);
+}
+.btn:focus{ outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.visually-hidden{
+  position: absolute !important;
+  left: -9999px;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+
+/* =========================================================
+   Layout
+   Grid: [ Rail | Panes ]
+========================================================= */
+.container{
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Rail */
+.rail{ display: flex; align-items: flex-start; justify-content: center; }
+.rail-pill{ display:none; } /* hidden by request */
+
+/* Panes wrapper: two columns on desktop (Preview wider, left) */
+.panes{
+  display: grid;
+  gap: 20px;
+}
+
+/* Desktop: side-by-side */
+@media (min-width: 900px){
+  .panes{
+    grid-template-columns: 1.25fr 1fr;   /* Preview wider */
+    grid-template-areas: "preview extracted";
     grid-auto-rows: minmax(320px, 1fr);
   }
+  #pane-preview { grid-area: preview; }
+  #pane-info    { grid-area: extracted; }
 }
 
-/* --- Scrollable preview viewport so content stays inside --- */
-.preview { padding: 0; }                   /* let inner viewport hug edges */
-.preview-viewport {
-  position: relative;
-  overflow: auto;                          /* scrollbars live here */
-  height: 60vh;                            /* adjust to taste */
-  max-height: 70vh;
+/* Mobile: stack */
+@media (max-width: 899.98px){
+  .container{ grid-template-columns: 1fr; }
+  .rail{ display: none; }
+  .panes{ grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   Pane cards
+========================================================= */
+.pane{
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow inner scroll */
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 10px 35px rgba(0,0,0,.35);
+}
+
+.pane-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.pane-header h2{ margin: 0; font-size: 16px; letter-spacing: .2px; }
+.pane-actions{ display: flex; gap: 8px; }
+
+.pane-body{
+  flex: 1 1 auto;
+  min-height: 0;       /* critical for internal scroll areas */
   padding: 16px;
 }
 
-/* IMPORTANT: remove old constraints that hid content */
-.preview img, .preview canvas {}
+/* Code-style body (Extracted Info) */
+.code{
+  background: #0b1220;
+  color: #d1e3ff;
+  border-radius: 12px;
+  border: 1px solid #122037;
+  padding: 16px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
 
-/* Natural-size media; zoom via CSS transform */
-.preview-viewport img,
-.preview-viewport canvas {
-  display: none;                           /* JS will switch to block when loaded */
-  width: auto;
-  height: auto;
-  max-width: none;
+/* =========================================================
+   Preview area
+========================================================= */
+.preview{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(600px 200px at 50% 0%, rgba(59,130,246,.12), transparent 60%),
+    #0b1220;
+  border: 1px solid #122037;
+  border-radius: 12px;
+  padding: 0; /* viewport handles its own padding */
+  min-height: 340px;
+}
+
+/* Viewport that scrolls internally */
+.preview-viewport{
+  position: relative;
+  overflow: auto;
+  height: 100%;
   max-height: none;
-  transform-origin: top left;              /* zoom from top-left for predictable scroll */
+  min-height: 320px;
+  padding: 16px;
 }
 
 /* Empty state */
-.preview .empty {
-  display: block;
+.preview .empty{
   color: var(--muted);
   text-align: center;
   padding: 40px 0;
 }
 
-/* Optional: visual cue when dragging */
-.preview-viewport.dragging {
-  outline: 2px dashed var(--brand);
-  outline-offset: -6px;
-}
-/* === 0) Make the main content fill the viewport height === */
-/* Body becomes a vertical flex layout: topbar (auto) + container (fills) + footer (auto) */
-html, body { height: 100%; }
-body { display: flex; flex-direction: column; }
-
-/* container now expands to consume remaining height */
-.container {
-  flex: 1 1 auto;
-  max-width: none;          /* full-width (E-W) */
-  width: 100%;
-  padding-left: 24px;       /* adjust padding to taste */
-  padding-right: 24px;
-}
-
-/* Optional: if you want even more width, hide the rail entirely on desktop too */
-/* .rail { display: none; } */
-/* .container { grid-template-columns: 1fr; } */
-
-
-/* === 1) Two-column layout with explicit areas: left = extracted, right = preview === */
-.panes {
-  display: grid;
-  gap: 20px;
-  height: 100%;             /* fill available vertical space */
-}
-
-/* Desktop: side-by-side, preview on the RIGHT (and a bit wider) */
-@media (min-width: 900px) {
-  .panes {
-    grid-template-columns: 1fr 1.25fr;      /* preview wider; tweak ratio as you like */
-    grid-template-areas: "extracted preview";
-    grid-auto-rows: 1fr;                    /* rows stretch equally if more rows appear */
-  }
-  #extracted-pane { grid-area: extracted; }
-  #preview-pane   { grid-area: preview;   }
-}
-
-/* Mobile: stack (order doesn’t matter when stacked) */
-@media (max-width: 899.98px) {
-  .panes { grid-template-columns: 1fr; }
-}
-
-
-/* === 2) Make each pane stretch vertically and keep headers fixed === */
-.pane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;            /* critical so children can shrink and allow scrolling inside */
-}
-
-.pane-header {
-  flex: 0 0 auto;           /* fixed header */
-}
-
-.pane-body {
-  flex: 1 1 auto;           /* body stretches to fill the rest */
-  min-height: 0;            /* allows inner scroll containers to work */
-}
-
-/* === 3) Preview viewport should fill the pane body and scroll internally === */
-.preview { padding: 0; }
-.preview-viewport {
-  position: relative;
-  overflow: auto;           /* internal scrollbars */
-  height: 100%;             /* fill pane-body */
-  max-height: none;         /* remove previous cap */
-  padding: 16px;
-  min-height: 0;
-}
-
-/* Media inside preview: render at natural size; zoom with transform */
+/* Media elements: JS will toggle display to block when loaded */
 .preview-viewport img,
-.preview-viewport canvas {
-  display: none;            /* JS toggles to block */
+.preview-viewport canvas{
+  display: none;
   width: auto;
   height: auto;
   max-width: none;
   max-height: none;
-  transform-origin: top left;
+  transform-origin: top left; /* for zoom via transform */
 }
 
-/* === Viewport sizing: one-screen sections, footer NOT sticky === */
-html, body { height: 100%; }
-
-/* If you previously set body to display:flex; undo it */
-body { display: block; }
-
-/* Full-width content (E–W), but not forcing the footer to stick */
-.container {
-  max-width: none;
-  width: 100%;
-  padding-left: 24px;
-  padding-right: 24px;
+/* Optional drag cue */
+.preview-viewport.dragging{
+  outline: 2px dashed var(--brand);
+  outline-offset: -6px;
 }
 
-/* The panes area is exactly one viewport tall (N–S). 
-   Footer will sit below and require a scroll to see it. */
-.panes {
-  height: 100vh;           /* one “screen length” */
-  display: grid;
-  gap: 20px;
-}
-
-/* MODIFIED: Preview is now on the LEFT, extracted is on the RIGHT */
-@media (min-width: 900px) {
-  .panes {
-    /* Swapped column sizes to keep preview wider */
-    grid-template-columns: 1.25fr 1fr;
-    /* Swapped the grid area names */
-    grid-template-areas: "preview extracted";
-  }
-  #extracted-pane { grid-area: extracted; }
-  #preview-pane   { grid-area: preview;   }
-}
-
-@media (max-width: 899.98px) {
-  .panes { grid-template-columns: 1fr; }   /* stack on mobile */
-}
-
-/* Make pane headers fixed and bodies fill the rest (so preview scrolls inside) */
-.pane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-.pane-header { flex: 0 0 auto; }
-.pane-body   { flex: 1 1 auto; min-height: 0; }
-
-/* Preview viewport fills the body and scrolls internally */
-.preview { padding: 0; }
-.preview-viewport {
-  position: relative;
-  height: 100%;
-  overflow: auto;
-  padding: 16px;
-  min-height: 0;
-}
-
-/* Media renders at natural size; zoom via transform */
-.preview-viewport img,
-.preview-viewport canvas {
-  display: none;                 /* JS toggles this to block */
-  width: auto; height: auto;
-  max-width: none; max-height: none;
-  transform-origin: top left;
+/* =========================================================
+   Footer
+========================================================= */
+.footer{
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  padding: 18px 20px;
+  text-align: center;
+  margin-top: 30px;
 }
