@@ -49,11 +49,13 @@
         </div>
 
         <div id="preview" class="pane-body preview">
-          <div class="empty">
-            <p>Drop a file here or use the <strong>Upload</strong> button.</p>
+          <div class="preview-viewport" id="preview-viewport">
+            <div class="empty" id="preview-empty">
+              <p>Drop a file here or use the <strong>Upload</strong> button.</p>
+            </div>
+            <img id="preview-img" alt="">
+            <canvas id="preview-canvas"></canvas>
           </div>
-          <img id="preview-img" alt="" />
-          <canvas id="preview-canvas"></canvas>
         </div>
       </article>
     </section>
