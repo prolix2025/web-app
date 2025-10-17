@@ -10,6 +10,9 @@ const copyBtn = document.getElementById("copy-info");
 const clearBtn = document.getElementById("clear-info");
 const zoomInBtn = document.getElementById("zoom-in");
 const zoomOutBtn = document.getElementById("zoom-out");
+const previewViewport = document.getElementById("preview-viewport");
+const previewEmpty = document.getElementById("preview-empty");
+
 
 let zoom = 1;
 
@@ -18,14 +21,17 @@ fileInput.addEventListener("change", (e) => {
   if (file) handleFile(file);
 });
 
-["dragenter", "dragover"].forEach(evt =>
-  preview.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); })
-);
-preview.addEventListener("drop", (e) => {
-  e.preventDefault(); e.stopPropagation();
+["dragenter","dragover","dragleave","drop"].forEach(evt => {
+  previewViewport.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+});
+previewViewport.addEventListener("dragover", () => previewViewport.classList.add("dragging"));
+previewViewport.addEventListener("dragleave", () => previewViewport.classList.remove("dragging"));
+previewViewport.addEventListener("drop", (e) => {
+  previewViewport.classList.remove("dragging");
   const file = e.dataTransfer?.files?.[0];
   if (file) handleFile(file);
 });
+
 
 async function handleFile(file) {
   const type = file.type.toLowerCase();
@@ -35,15 +41,20 @@ async function handleFile(file) {
 
   // Show preview
   if (isImage) {
+    previewEmpty.style.display = "none";
     previewImg.style.display = "block";
     previewCanvas.style.display = "none";
     const reader = new FileReader();
-    reader.onload = () => { previewImg.src = reader.result; zoom = 1; };
+    reader.onload = () => { previewImg.src = reader.result; setZoom(1); };
     reader.readAsDataURL(file);
+
   } else {
+    previewEmpty.style.display = "none";
     previewImg.style.display = "none";
     previewCanvas.style.display = "block";
+    setZoom(1);
     drawPdfPlaceholder(file.name);
+
   }
 
   // Send to backend for extraction
@@ -87,5 +98,6 @@ function setZoom(z) {
   zoom = z;
   const el = previewImg.style.display === "block" ? previewImg : previewCanvas;
   el.style.transform = `scale(${zoom})`;
-  el.style.transformOrigin = "center center";
+  el.style.transformOrigin = "top left";
 }
+
