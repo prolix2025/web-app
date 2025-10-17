@@ -18,7 +18,7 @@
    Base / Reset
 ========================================================= */
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: auto; }     /* normal flow; prevents sticky feel */
 body {
   margin: 0;
   color: var(--text);
@@ -92,8 +92,7 @@ body {
 }
 
 /* =========================================================
-   Layout
-   Grid: [ Rail | Panes ]
+   Layout: [ Rail | Panes ]
 ========================================================= */
 .container{
   display: grid;
@@ -174,7 +173,7 @@ body {
 }
 
 /* =========================================================
-   Preview area
+   Preview area (NEVER overlaps footer)
 ========================================================= */
 .preview{
   position: relative;
@@ -188,6 +187,12 @@ body {
   border-radius: 12px;
   padding: 0; /* viewport handles its own padding */
   min-height: 340px;
+}
+
+/* Cap the preview body height so page flow remains sane */
+#pane-preview .pane-body{
+  max-height: 72vh;      /* tweak to your liking */
+  overflow: hidden;      /* contain the viewport */
 }
 
 /* Viewport that scrolls internally */
@@ -207,14 +212,14 @@ body {
   padding: 40px 0;
 }
 
-/* Media elements: JS will toggle display to block when loaded */
+/* Media elements: JS toggles display to block when loaded */
 .preview-viewport img,
 .preview-viewport canvas{
   display: none;
   width: auto;
   height: auto;
-  max-width: none;
-  max-height: none;
+  max-width: 100%;
+  max-height: 100%;
   transform-origin: top left; /* for zoom via transform */
 }
 
@@ -225,12 +230,14 @@ body {
 }
 
 /* =========================================================
-   Footer
+   Footer (thin, non-sticky)
 ========================================================= */
 .footer{
+  position: static;           /* ensure not fixed/sticky */
   border-top: 1px solid var(--border);
   color: var(--muted);
-  padding: 18px 20px;
+  padding: 10px 16px;         /* thin */
+  font-size: 12px;
   text-align: center;
   margin-top: 30px;
 }
