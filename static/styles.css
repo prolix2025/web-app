@@ -162,7 +162,6 @@ body { display: flex; flex-direction: column; }
   transform-origin: top left;
 }
 
-/* (Keep your existing .empty and .dragging styles) */
 /* === Viewport sizing: one-screen sections, footer NOT sticky === */
 html, body { height: 100%; }
 
@@ -185,11 +184,13 @@ body { display: block; }
   gap: 20px;
 }
 
-/* Keep preview on the RIGHT, extracted on the LEFT */
+/* MODIFIED: Preview is now on the LEFT, extracted is on the RIGHT */
 @media (min-width: 900px) {
   .panes {
-    grid-template-columns: 1fr 1.25fr;     /* tweak ratio as you like */
-    grid-template-areas: "extracted preview";
+    /* Swapped column sizes to keep preview wider */
+    grid-template-columns: 1.25fr 1fr;
+    /* Swapped the grid area names */
+    grid-template-areas: "preview extracted";
   }
   #extracted-pane { grid-area: extracted; }
   #preview-pane   { grid-area: preview;   }
