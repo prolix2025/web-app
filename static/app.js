@@ -1,110 +1,146 @@
-document.getElementById("year").textContent = new Date().getFullYear();
+// Handles image/PDF preview + zoom; keeps preview inside pane
 
-const fileInput = document.getElementById("file-input");
-const preview = document.getElementById("preview");
-const previewImg = document.getElementById("preview-img");
-const previewCanvas = document.getElementById("preview-canvas");
-const info = document.getElementById("extracted-info");
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const fileInput = $('#file-input');
+  const previewEmpty = $('#preview-empty');
+  const imgEl = $('#preview-img');
+  const canvas = $('#preview-canvas');
+  const zoomInBtn = $('#zoom-in');
+  const zoomOutBtn = $('#zoom-out');
+  const dropZone = $('#preview-viewport');
 
-const copyBtn = document.getElementById("copy-info");
-const clearBtn = document.getElementById("clear-info");
-const zoomInBtn = document.getElementById("zoom-in");
-const zoomOutBtn = document.getElementById("zoom-out");
-const previewViewport = document.getElementById("preview-viewport");
-const previewEmpty = document.getElementById("preview-empty");
+  let pdfDoc = null;
+  let pdfPage = 1;
+  let scale = 1.0;
+  const MIN_SCALE = 0.25;
+  const MAX_SCALE = 4.0;
+  const STEP = 0.15;
 
+  const ctx = canvas.getContext('2d');
 
-let zoom = 1;
+  const showEmpty = (b) => previewEmpty.style.display = b ? 'block' : 'none';
+  const showImg   = (b) => imgEl.style.display = b ? 'block' : 'none';
+  const showCanvas= (b) => canvas.style.display = b ? 'block' : 'none';
 
-fileInput.addEventListener("change", (e) => {
-  const file = e.target.files?.[0];
-  if (file) handleFile(file);
-});
-
-["dragenter","dragover","dragleave","drop"].forEach(evt => {
-  previewViewport.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
-});
-previewViewport.addEventListener("dragover", () => previewViewport.classList.add("dragging"));
-previewViewport.addEventListener("dragleave", () => previewViewport.classList.remove("dragging"));
-previewViewport.addEventListener("drop", (e) => {
-  previewViewport.classList.remove("dragging");
-  const file = e.dataTransfer?.files?.[0];
-  if (file) handleFile(file);
-});
-
-
-async function handleFile(file) {
-  const type = file.type.toLowerCase();
-  const isImage = /png|jpg|jpeg/.test(type);
-  const isPdf = /pdf/.test(type);
-  if (!isImage && !isPdf) { alert("Unsupported file. Try PNG, JPG, or PDF."); return; }
-
-  // Show preview
-  if (isImage) {
-    previewEmpty.style.display = "none";
-    previewImg.style.display = "block";
-    previewCanvas.style.display = "none";
-    const reader = new FileReader();
-    reader.onload = () => { previewImg.src = reader.result; setZoom(1); };
-    reader.readAsDataURL(file);
-
-  } else {
-    previewEmpty.style.display = "none";
-    previewImg.style.display = "none";
-    previewCanvas.style.display = "block";
-    setZoom(1);
-    drawPdfPlaceholder(file.name);
-
+  function clearPreview() {
+    showEmpty(true);
+    showImg(false);
+    showCanvas(false);
+    imgEl.removeAttribute('src');
+    imgEl.style.transform = '';
+    imgEl.dataset.zoom = '1';
+    pdfDoc = null;
   }
 
-  // Send to backend for extraction
-  const form = new FormData();
-  form.append("file", file);
-
-  try {
-    const res = await fetch("/api/extract", { method: "POST", body: form });
-    const json = await res.json();
-    info.textContent = JSON.stringify(json, null, 2);
-  } catch (err) {
-    info.textContent = "Extraction failed. " + err;
+  function fitCanvas(viewport) {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(viewport.width * dpr);
+    canvas.height = Math.floor(viewport.height * dpr);
+    canvas.style.width = Math.floor(viewport.width) + 'px';
+    canvas.style.height = Math.floor(viewport.height) + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-}
 
-function drawPdfPlaceholder(name) {
-  const ctx = previewCanvas.getContext("2d");
-  const w = Math.min(preview.clientWidth - 40, 900);
-  const h = Math.max(420, Math.round(w * 1.3));
-  previewCanvas.width = w; previewCanvas.height = h;
-  ctx.fillStyle = "#0b0f17"; ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = "#122037"; ctx.lineWidth = 2; ctx.strokeRect(12, 12, w - 24, h - 24);
-  ctx.fillStyle = "#9db7ff"; ctx.font = "20px ui-sans-serif"; ctx.fillText("PDF Preview Placeholder", 24, 44);
-  ctx.fillStyle = "#8a9bbf"; ctx.font = "14px ui-sans-serif"; ctx.fillText(name, 24, 70);
-}
+  async function renderPdfPage() {
+    if (!pdfDoc) return;
+    const page = await pdfDoc.getPage(pdfPage);
+    const viewport = page.getViewport({ scale });
+    fitCanvas(viewport);
+    const renderContext = { canvasContext: ctx, viewport };
+    await page.render(renderContext).promise;
+  }
 
-document.getElementById("copy-info").addEventListener("click", async () => {
-  try { await navigator.clipboard.writeText(info.textContent); copyBtn.textContent = "Copied!"; setTimeout(()=>copyBtn.textContent="Copy", 900); }
-  catch { alert("Could not copy to clipboard."); }
-});
+  async function openPdf(arrayBuffer) {
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    pdfPage = 1;
+    showEmpty(false);
+    showImg(false);
+    showCanvas(true);
+    await renderPdfPage();
+  }
 
-clearBtn.addEventListener("click", () => {
-  info.textContent = "— No document yet. Upload a file to see extracted fields here. —";
-  previewImg.src = "";
-  previewImg.style.display = "none";
-  previewCanvas.style.display = "none";
-  previewEmpty.style.display = "block";      // <-- show empty state again
-  setZoom(1);                                 // <-- reset zoom
-  previewViewport.scrollTop = 0;              // <-- reset scroll
-  previewViewport.scrollLeft = 0;
-});
+  function openImage(file) {
+    const url = URL.createObjectURL(file);
+    imgEl.onload = () => URL.revokeObjectURL(url);
+    imgEl.src = url;
+    imgEl.dataset.zoom = '1';
+    imgEl.style.transformOrigin = 'top left';
+    imgEl.style.transform = 'scale(1)';
+    showEmpty(false);
+    showCanvas(false);
+    showImg(true);
+  }
 
+  // File input
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    scale = 1.0; // reset zoom per file
 
-zoomInBtn.addEventListener("click", () => setZoom(zoom + 0.1));
-zoomOutBtn.addEventListener("click", () => setZoom(Math.max(0.2, zoom - 0.1)));
+    const type = (file.type || '').toLowerCase();
+    if (type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try { await openPdf(reader.result); }
+        catch (err) {
+          console.error('PDF open error:', err);
+          clearPreview();
+          previewEmpty.innerHTML = '<p>Could not render PDF. Check PDF.js files & worker path.</p>';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else if (type.startsWith('image/')) {
+      openImage(file);
+    } else {
+      clearPreview();
+      previewEmpty.innerHTML = '<p>Unsupported file type. Please upload an image or PDF.</p>';
+    }
+  });
 
-function setZoom(z) {
-  zoom = z;
-  const el = previewImg.style.display === "block" ? previewImg : previewCanvas;
-  el.style.transform = `scale(${zoom})`;
-  el.style.transformOrigin = "top left";
-}
+  // Zoom controls
+  zoomInBtn?.addEventListener('click', async () => {
+    if (pdfDoc) {
+      scale = Math.min(MAX_SCALE, scale + STEP);
+      await renderPdfPage();
+    } else if (imgEl.src) {
+      const cur = parseFloat(imgEl.dataset.zoom || '1');
+      const next = Math.min(MAX_SCALE, cur + STEP);
+      imgEl.style.transform = `scale(${next})`;
+      imgEl.dataset.zoom = String(next);
+    }
+  });
 
+  zoomOutBtn?.addEventListener('click', async () => {
+    if (pdfDoc) {
+      scale = Math.max(MIN_SCALE, scale - STEP);
+      await renderPdfPage();
+    } else if (imgEl.src) {
+      const cur = parseFloat(imgEl.dataset.zoom || '1');
+      const next = Math.max(MIN_SCALE, cur - STEP);
+      imgEl.style.transform = `scale(${next})`;
+      imgEl.dataset.zoom = String(next);
+    }
+  });
+
+  // Drag & drop
+  if (dropZone) {
+    const prevent = (ev) => { ev.preventDefault(); ev.stopPropagation(); };
+    ['dragenter','dragover','dragleave','drop'].forEach(evt =>
+      dropZone.addEventListener(evt, prevent, false)
+    );
+    dropZone.addEventListener('dragenter', () => dropZone.classList.add('dragging'));
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+    dropZone.addEventListener('drop', (ev) => {
+      dropZone.classList.remove('dragging');
+      const file = ev.dataTransfer?.files?.[0];
+      if (!file) return;
+      fileInput.files = ev.dataTransfer.files;
+      const changeEvent = new Event('change');
+      fileInput.dispatchEvent(changeEvent);
+    });
+  }
+
+  // Init
+  clearPreview();
+})();
