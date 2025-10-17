@@ -163,3 +163,66 @@ body { display: flex; flex-direction: column; }
 }
 
 /* (Keep your existing .empty and .dragging styles) */
+/* === Viewport sizing: one-screen sections, footer NOT sticky === */
+html, body { height: 100%; }
+
+/* If you previously set body to display:flex; undo it */
+body { display: block; }
+
+/* Full-width content (E–W), but not forcing the footer to stick */
+.container {
+  max-width: none;
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* The panes area is exactly one viewport tall (N–S). 
+   Footer will sit below and require a scroll to see it. */
+.panes {
+  height: 100vh;           /* one “screen length” */
+  display: grid;
+  gap: 20px;
+}
+
+/* Keep preview on the RIGHT, extracted on the LEFT */
+@media (min-width: 900px) {
+  .panes {
+    grid-template-columns: 1fr 1.25fr;     /* tweak ratio as you like */
+    grid-template-areas: "extracted preview";
+  }
+  #extracted-pane { grid-area: extracted; }
+  #preview-pane   { grid-area: preview;   }
+}
+
+@media (max-width: 899.98px) {
+  .panes { grid-template-columns: 1fr; }   /* stack on mobile */
+}
+
+/* Make pane headers fixed and bodies fill the rest (so preview scrolls inside) */
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.pane-header { flex: 0 0 auto; }
+.pane-body   { flex: 1 1 auto; min-height: 0; }
+
+/* Preview viewport fills the body and scrolls internally */
+.preview { padding: 0; }
+.preview-viewport {
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  padding: 16px;
+  min-height: 0;
+}
+
+/* Media renders at natural size; zoom via transform */
+.preview-viewport img,
+.preview-viewport canvas {
+  display: none;                 /* JS toggles this to block */
+  width: auto; height: auto;
+  max-width: none; max-height: none;
+  transform-origin: top left;
+}
