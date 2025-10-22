@@ -1,146 +1,151 @@
-// Handles image/PDF preview + zoom; keeps preview inside pane
+// ===== Backend URL =====
+const API_BASE = "/api";
+// ===== Clock =====
+const clockEl = document.getElementById('clock');
+function tick() {
+  const d = new Date();
+  clockEl.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+if (clockEl) { tick(); setInterval(tick, 1000 * 15); }
 
-(() => {
-  const $ = (s) => document.querySelector(s);
-  const fileInput = $('#file-input');
-  const previewEmpty = $('#preview-empty');
-  const imgEl = $('#preview-img');
-  const canvas = $('#preview-canvas');
-  const zoomInBtn = $('#zoom-in');
-  const zoomOutBtn = $('#zoom-out');
-  const dropZone = $('#preview-viewport');
+// ===== Elements =====
+const dropzone   = document.getElementById('dropzone');
+const fileInput  = document.getElementById('file');
+const preview    = document.getElementById('preview');
+const imgPreview = document.getElementById('imgPreview');
+const pdfPreview = document.getElementById('pdfPreview');
+const placeholder = document.getElementById('placeholder');
 
-  let pdfDoc = null;
-  let pdfPage = 1;
-  let scale = 1.0;
-  const MIN_SCALE = 0.25;
-  const MAX_SCALE = 4.0;
-  const STEP = 0.15;
+const form      = document.getElementById('detailsForm');
+const btnExtract = document.getElementById('btn1'); // Left panel button 1
+const btnClear   = document.getElementById('btn2'); // Left panel button 2
+const btnSaveDraft = document.getElementById('saveDraft');
 
-  const ctx = canvas.getContext('2d');
+// ===== Preview helpers =====
+function showPreview(file) {
+  const url = URL.createObjectURL(file);
+  const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-  const showEmpty = (b) => previewEmpty.style.display = b ? 'block' : 'none';
-  const showImg   = (b) => imgEl.style.display = b ? 'block' : 'none';
-  const showCanvas= (b) => canvas.style.display = b ? 'block' : 'none';
+  imgPreview.style.display = isPDF ? 'none' : 'block';
+  pdfPreview.style.display = isPDF ? 'block' : 'none';
 
-  function clearPreview() {
-    showEmpty(true);
-    showImg(false);
-    showCanvas(false);
-    imgEl.removeAttribute('src');
-    imgEl.style.transform = '';
-    imgEl.dataset.zoom = '1';
-    pdfDoc = null;
+  if (isPDF) {
+    // PDFs: fill the dotted area
+    pdfPreview.src = url;
+  } else {
+    // Images: contain within the dotted area
+    imgPreview.src = url;
   }
 
-  function fitCanvas(viewport) {
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(viewport.width * dpr);
-    canvas.height = Math.floor(viewport.height * dpr);
-    canvas.style.width = Math.floor(viewport.width) + 'px';
-    canvas.style.height = Math.floor(viewport.height) + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
+  preview.classList.add('active');
+  placeholder.style.display = 'none';
+}
 
-  async function renderPdfPage() {
-    if (!pdfDoc) return;
-    const page = await pdfDoc.getPage(pdfPage);
-    const viewport = page.getViewport({ scale });
-    fitCanvas(viewport);
-    const renderContext = { canvasContext: ctx, viewport };
-    await page.render(renderContext).promise;
-  }
+function clearPreview() {
+  if (fileInput) fileInput.value = '';
+  imgPreview.removeAttribute('src');
+  pdfPreview.removeAttribute('src');
+  preview.classList.remove('active');
+  placeholder.style.display = '';
+}
 
-  async function openPdf(arrayBuffer) {
-    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    pdfPage = 1;
-    showEmpty(false);
-    showImg(false);
-    showCanvas(true);
-    await renderPdfPage();
-  }
-
-  function openImage(file) {
-    const url = URL.createObjectURL(file);
-    imgEl.onload = () => URL.revokeObjectURL(url);
-    imgEl.src = url;
-    imgEl.dataset.zoom = '1';
-    imgEl.style.transformOrigin = 'top left';
-    imgEl.style.transform = 'scale(1)';
-    showEmpty(false);
-    showCanvas(false);
-    showImg(true);
-  }
-
-  // File input
-  fileInput.addEventListener('change', async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    scale = 1.0; // reset zoom per file
-
-    const type = (file.type || '').toLowerCase();
-    if (type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try { await openPdf(reader.result); }
-        catch (err) {
-          console.error('PDF open error:', err);
-          clearPreview();
-          previewEmpty.innerHTML = '<p>Could not render PDF. Check PDF.js files & worker path.</p>';
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    } else if (type.startsWith('image/')) {
-      openImage(file);
-    } else {
-      clearPreview();
-      previewEmpty.innerHTML = '<p>Unsupported file type. Please upload an image or PDF.</p>';
-    }
+// ===== Drag & drop + file input =====
+if (dropzone) {
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault(); dropzone.classList.remove('drag');
+    const file = e.dataTransfer.files?.[0];
+    if (file) { fileInput.files = e.dataTransfer.files; showPreview(file); }
   });
+  dropzone.addEventListener('click', () => fileInput.click());
+}
 
-  // Zoom controls
-  zoomInBtn?.addEventListener('click', async () => {
-    if (pdfDoc) {
-      scale = Math.min(MAX_SCALE, scale + STEP);
-      await renderPdfPage();
-    } else if (imgEl.src) {
-      const cur = parseFloat(imgEl.dataset.zoom || '1');
-      const next = Math.min(MAX_SCALE, cur + STEP);
-      imgEl.style.transform = `scale(${next})`;
-      imgEl.dataset.zoom = String(next);
-    }
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (file) showPreview(file);
   });
+}
 
-  zoomOutBtn?.addEventListener('click', async () => {
-    if (pdfDoc) {
-      scale = Math.max(MIN_SCALE, scale - STEP);
-      await renderPdfPage();
-    } else if (imgEl.src) {
-      const cur = parseFloat(imgEl.dataset.zoom || '1');
-      const next = Math.max(MIN_SCALE, cur - STEP);
-      imgEl.style.transform = `scale(${next})`;
-      imgEl.dataset.zoom = String(next);
-    }
-  });
+// ===== Left control panel actions =====
+if (btnClear) btnClear.addEventListener('click', clearPreview);
 
-  // Drag & drop
-  if (dropZone) {
-    const prevent = (ev) => { ev.preventDefault(); ev.stopPropagation(); };
-    ['dragenter','dragover','dragleave','drop'].forEach(evt =>
-      dropZone.addEventListener(evt, prevent, false)
-    );
-    dropZone.addEventListener('dragenter', () => dropZone.classList.add('dragging'));
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
-    dropZone.addEventListener('drop', (ev) => {
-      dropZone.classList.remove('dragging');
-      const file = ev.dataTransfer?.files?.[0];
-      if (!file) return;
-      fileInput.files = ev.dataTransfer.files;
-      const changeEvent = new Event('change');
-      fileInput.dispatchEvent(changeEvent);
+if (btnExtract) btnExtract.addEventListener('click', async () => {
+  const file = fileInput?.files?.[0];
+  if (!file) { alert('Please upload an invoice first.'); return; }
+
+  try {
+    // Disable buttons while working (optional)
+    btnExtract.disabled = true; btnExtract.textContent = "Extracting…";
+
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    const res = await fetch(`${API_BASE}/extract`, {
+      method: 'POST',
+      body: formData,
     });
-  }
 
-  // Init
-  clearPreview();
-})();
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Backend error ${res.status}: ${text}`);
+    }
+
+    const data = await res.json();
+    hydrateForm(data); // already defined in your app.js
+
+    // Optional: give quick feedback
+    console.log('Extracted fields:', data);
+  } catch (err) {
+    console.error(err);
+    alert("Extraction failed. Check console for details.");
+  } finally {
+    btnExtract.disabled = false; btnExtract.textContent = "Extract with AI";
+  }
+});
+
+function hydrateForm(data) {
+  if (!data || !form) return;
+  const map = {
+    invoice_date: data.invoice_date,
+    invoice_amount: data.invoice_amount,
+    btw_amount: data.btw_amount,
+    btw_number: data.btw_number,
+    kvk: data.kvk,
+    supplier: data.supplier,
+    notes: data.notes
+  };
+  Object.entries(map).forEach(([k, v]) => {
+    if (v == null) return;
+    const el = form.elements.namedItem(k);
+    if (el) el.value = v;
+  });
+}
+
+// ===== Draft save/restore =====
+if (btnSaveDraft && form) {
+  btnSaveDraft.addEventListener('click', () => {
+    localStorage.setItem('invoiceFormDraft', JSON.stringify(Object.fromEntries(new FormData(form))));
+  });
+}
+
+if (form) {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(form));
+    console.log('Submit payload', payload);
+  });
+
+  // Restore draft if present
+  const draft = localStorage.getItem('invoiceFormDraft');
+  if (draft) {
+    try {
+      const data = JSON.parse(draft);
+      Object.entries(data).forEach(([k, v]) => {
+        const el = form.querySelector(`[name="${k}"]`);
+        if (el) el.value = v;
+      });
+    } catch {}
+  }
+}
